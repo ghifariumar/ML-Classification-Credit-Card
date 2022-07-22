@@ -2,7 +2,7 @@
 
 - Create Machine Learning Classification Model to detect Credit Card fraud
 - Minimize false negative error Recall(+) => model predict does not fraud while it does fraud
-- Trying over sampling, under sampling, SMOTE
+- Trying over sampling, under sampling, SMOTE, and class weighting
 - Dataset Source : https://www.kaggle.com/datasets/mlg-ulb/creditcardfraud
 
 ```python
@@ -66,7 +66,7 @@ plt.show()
 <img width="296" alt="image" src="https://user-images.githubusercontent.com/99155979/180390616-d79052ef-b7c1-40da-9219-165cf56435da.png">
 
 ## Random Over Sampling
-  - **Duplicating dara randomly** class-target minority (class 1) until it has the same amount with class-target majority (class 0).
+  - **Duplicating data randomly** class-target minority (class 1) until it has the same amount with class-target majority (class 0).
   - **Fraud** dataframe will be over sampling until it has the same amount with **Non Fraud** dataframe.
 
 ```python
@@ -120,4 +120,59 @@ plt.show()
 
 ============================================================================================
 ## SMOTE - Synthetic Minority Oversampling Technique
+- **Create Synthetic Randomly** from minoruty class (Class 1), until it has the same amount with majority class (Class 0)
+
+- Import and install package
+```python
+import imblearn
+conda install -c conda-forge imbalanced-learn==0.6
+from imblearn.over_sampling import SMOTE
+```
+```python
+sm = SMOTE(random_state=42)
+X_train_sm, y_train_sm = sm.fit_sample(X_train, y_train)
+
+# Optional for checking proportion
+df_SMOTE = pd.concat([X_train_sm, y_train_sm], axis=1)
+df_SMOTE['Class'].value_counts()
+```
+<img width="160" alt="image" src="https://user-images.githubusercontent.com/99155979/180421319-e0a020db-ae0c-4d7c-82f8-c210d52bc3c6.png">
+
+```python
+LR_SMOTE = LogisticRegression()
+LR_SMOTE.fit(X_train_sm, y_train_sm)
+y_predSMOTE = LR_SMOTE.predict(X_test)
+print(classification_report(y_test, y_predSMOTE))
+```
+<img width="300" alt="image" src="https://user-images.githubusercontent.com/99155979/180421465-70978daf-8df7-43f9-b6fd-270ad602cf57.png">
+
+```python
+cm_SMOTE = confusion_matrix(y_test, y_predSMOTE, labels=[1,0])
+df_SMOTE = pd.DataFrame(cm_SMOTE, index=['Akt 1', 'Akt 0'], columns=['Pred 1', 'Pred 0'])
+sns.heatmap(df_SMOTE, annot=True, cbar=False)
+plt.show()
+```
+<img width="277" alt="image" src="https://user-images.githubusercontent.com/99155979/180421680-99fcf4b7-1362-4879-8f72-3e8561274e04.png">
+
+## Class Weight
+- With class weighting, no need to use SMOTE or random sampling
+- Using the first X_train and  y_train
+- Focusing on learning the model
+- Total Class Weight = 1
+
+```python
+LR_CW = LogisticRegression(class_weight={0:0.3, 1:.97})
+LR_CW.fit(X_train, y_train)
+y_predCW = LR_CW.predict(X_test)
+print(classification_report(y_test, y_predCW))
+```
+<img width="307" alt="image" src="https://user-images.githubusercontent.com/99155979/180426334-46a823c4-ab54-4f47-beb3-344c88b90935.png">
+
+```python
+cm_CW = confusion_matrix(y_test, y_predCW, labels=[1,0])
+df_CW = pd.DataFrame(cm_CW, index=['Akt 1', 'Akt 0'], columns = ['Pred 1','Pred 0'])
+sns.heatmap(df_CW, annot=True, cbar=False)
+plt.show()
+```
+<img width="281" alt="image" src="https://user-images.githubusercontent.com/99155979/180426542-7e696c99-97c8-4385-9e55-88bbc171ca95.png">
 
